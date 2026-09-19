@@ -39,6 +39,40 @@ MINIMAX_ENDPOINT
 
 The frontend never calls the model endpoint directly. The FastAPI backend enriches the user prompt and delegates generation to a provider. If a compatible server uses a different request or response shape, only [`backend/app/providers/minimax.py`](backend/app/providers/minimax.py) needs to change.
 
+## Mock mode and real generation
+
+> **Important:** The default configuration uses Mock Mode. It does not run MiniMax Music or generate new audio.
+
+With `MOCK_INFERENCE=true`, the backend:
+
+1. waits for `MOCK_DELAY_SECONDS` to simulate inference;
+2. returns the bundled `backend/app/assets/sample.wav` file; and
+3. includes the selected BPM, duration, genre, and mood as response metadata.
+
+The prompt and controls therefore do not change the audio while Mock Mode is active. This mode exists so contributors can clone the repository, test the interface, and run automated checks without a GPU or inference server.
+
+To generate new music, run a compatible MiniMax Music inference server and configure the backend:
+
+```env
+MOCK_INFERENCE=false
+MINIMAX_ENDPOINT=http://localhost:9000
+MINIMAX_GENERATE_PATH=/generate
+```
+
+Restart the backend after changing these values. For Docker Compose:
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+For local development, export the variables in the backend process environment before starting Uvicorn. The backend will then send every generation request to `${MINIMAX_ENDPOINT}${MINIMAX_GENERATE_PATH}` through `MiniMaxProvider`.
+
+| Mode | Generates new audio | Audio source |
+| --- | --- | --- |
+| `MOCK_INFERENCE=true` | No | Bundled `sample.wav` |
+| `MOCK_INFERENCE=false` | Yes | Configured MiniMax-compatible endpoint |
+
 ## Quick start with Docker
 
 Requirements: Docker Desktop or Docker Engine with Compose.
