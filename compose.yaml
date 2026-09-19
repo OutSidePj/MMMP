@@ -1,0 +1,27 @@
+services:
+  server:
+    build:
+      context: ./backend
+    environment:
+      APP_NAME: ${APP_NAME:-MiniMax Music Playground}
+      MINIMAX_ENDPOINT: ${MINIMAX_ENDPOINT:-http://host.docker.internal:8000}
+      MINIMAX_GENERATE_PATH: ${MINIMAX_GENERATE_PATH:-/generate}
+      MOCK_INFERENCE: ${MOCK_INFERENCE:-true}
+      MOCK_DELAY_SECONDS: ${MOCK_DELAY_SECONDS:-2.5}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+

@@ -1,0 +1,2 @@
+"""MiniMax Music Playground backend."""
+
